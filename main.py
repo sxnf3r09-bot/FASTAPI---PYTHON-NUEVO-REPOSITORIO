@@ -11,9 +11,8 @@ from modelos import (
 app = FastAPI()
 
 # =====================================================================
-# BASES DE DATOS SIMULADAS (LISTAS)
+# DATA STORAGE (SIMULACIÓN DE BASE DE DATOS)
 # =====================================================================
-
 lista_clientes = [
     {"id": 1, "nombre": "Santiago Fernandez", "email": "santiago@sena.edu.co", "descripcion": "Vocero de la ficha"},
     {"id": 2, "nombre": "Jhonny Guerrero", "email": "jhonny@sena.edu.co", "descripcion": "Instructor principal"},
@@ -32,15 +31,13 @@ def inicio():
     return {"mensaje": "hola estoy aprendiendo FAS App"}
 
 # =====================================================================
-# ENTIDAD: CLIENTES
+# ENDPOINTS: ENTIDAD CLIENTES
 # =====================================================================
 
-# 1. Leer todos los clientes
 @app.get("/clientes")
 def listar_clientes():
     return lista_clientes
 
-# 2. Leer un solo cliente por ID
 @app.get("/clientes/{cliente_id}")
 def listar_cliente_id(cliente_id: int):
     for cliente in lista_clientes:
@@ -48,7 +45,6 @@ def listar_cliente_id(cliente_id: int):
             return cliente
     raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
-# 3. Crear un cliente
 @app.post("/clientes")
 def crear_cliente(datos_cliente: ClienteCrear):
     nuevo_id = lista_clientes[-1]["id"] + 1 if lista_clientes else 1
@@ -57,7 +53,6 @@ def crear_cliente(datos_cliente: ClienteCrear):
     lista_clientes.append(cliente_dict)
     return {"mensaje": "Cliente creado exitosamente", "cliente": cliente_dict}
 
-# 4. Editar un cliente
 @app.put("/clientes/{cliente_id}")
 def editar_cliente(cliente_id: int, datos_actualizados: ClienteEditar):
     for cliente in lista_clientes:
@@ -66,22 +61,19 @@ def editar_cliente(cliente_id: int, datos_actualizados: ClienteEditar):
             cliente["email"] = datos_actualizados.email
             cliente["descripcion"] = datos_actualizados.descripcion
             return {"mensaje": "Cliente modificado exitosamente", "cliente": cliente}
-            
     raise HTTPException(status_code=404, detail="Cliente no encontrado para editar")
 
-# 5. Eliminar un cliente
 @app.delete("/clientes/{cliente_id}")
 def eliminar_cliente(cliente_id: int):
     for indice, cliente in enumerate(lista_clientes):
         if cliente["id"] == cliente_id:
             cliente_eliminado = lista_clientes.pop(indice)
             return {"mensaje": "Cliente eliminado exitosamente", "cliente": cliente_eliminado}
-            
     raise HTTPException(status_code=404, detail="Cliente no encontrado para eliminar")
 
 
 # =====================================================================
-# ENTIDAD: TRANSACCIONES (CLASE 7 - ENDPOINTS ESTRUCTURALES)
+# ENDPOINTS: ENTIDAD TRANSACCIONES
 # =====================================================================
 
 @app.get("/transacciones", response_model=list[TransaccionResponse])
@@ -117,15 +109,13 @@ def eliminar_transaccion(transaccion_id: int):
 
 
 # =====================================================================
-# ENTIDAD: FACTURAS (CLASES 8, 9 Y 10)
+# ENDPOINTS: ENTIDAD FACTURAS
 # =====================================================================
 
-# 1. Listar todas las facturas
 @app.get("/facturas", response_model=list[FacturaResponse])
 def listar_facturas():
     return lista_facturas
 
-# 2. Listar una sola factura por ID
 @app.get("/facturas/{factura_id}", response_model=FacturaResponse)
 def obtener_factura_id(factura_id: int):
     for factura in lista_facturas:
@@ -133,11 +123,9 @@ def obtener_factura_id(factura_id: int):
             return factura
     raise HTTPException(status_code=404, detail="Factura no encontrada")
 
-# 3. Crear factura con validación de cliente
 @app.post("/facturas/{cliente_id}", response_model=FacturaResponse)
 def crear_factura(cliente_id: int, datos_factura: FacturaCrear):
     cliente_encontrado = None
-    
     for cliente in lista_clientes:
         if cliente["id"] == cliente_id:
             cliente_encontrado = cliente
@@ -150,10 +138,8 @@ def crear_factura(cliente_id: int, datos_factura: FacturaCrear):
         )
         
     nuevo_id = lista_facturas[-1]["id"] + 1 if lista_facturas else 1
-    
     factura_dict = datos_factura.model_dump()
     factura_dict["id"] = nuevo_id
     factura_dict["id_cliente"] = cliente_id
-    
     lista_facturas.append(factura_dict)
     return factura_dict
