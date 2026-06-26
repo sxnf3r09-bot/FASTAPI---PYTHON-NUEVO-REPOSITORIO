@@ -1,46 +1,39 @@
-from fastapi import APIRouter, HTTPException
-from modelos import ClienteCrear, ClienteEditar
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session, select
+from modelos import Cliente, ClienteCrear, ClienteEditar
+from conexion_bd import obtener_sesion
 
 ratas_clientes = APIRouter()
 
-lista_clientes = [
-    {"id": 1, "nombre": "Santiago Fernandez", "email": "santiago@sena.edu.co", "descripcion": "Vocero de la ficha"},
-    {"id": 2, "nombre": "Jhonny Guerrero", "email": "jhonny@sena.edu.co", "descripcion": "Instructor principal"},
-]
+# Endpoint para listar todos los clientes desde la base de datos real
+@ratas_clientes.get("/clientes", response_model=list[Cliente])
+async def listar_clientes(sesion: Session = Depends(obtener_sesion)):
+    clientes = sesion.exec(select(Cliente)).all()
+    return clientes
 
-@ratas_clientes.get("/clientes")
-async def listar_clientes():
-    return lista_clientes
+# Endpoint para obtener un solo cliente de la base de datos
+@ratas_clientes.get("/clientes/{cliente_id}", response_model=Cliente)
+async def listar_cliente_id(cliente_id: int, sesion: Session = Depends(obtener_sesion)):
+    cliente = sesion.get(Cliente, cliente_id)
+    if not cliente:
+        raise HTTPException(status_code=404, detail=f"El cliente con id {cliente_id}, no existe.")
+    return cliente
 
-@ratas_clientes.get("/clientes/{cliente_id}")
-async def listar_cliente_id(cliente_id: int):
-    for cliente in lista_clientes:
-        if cliente["id"] == cliente_id:
-            return cliente
-    raise HTTPException(status_code=404, detail=f"El cliente con id {cliente_id}, no existe.")
-
-@ratas_clientes.post("/clientes")
-async def crear_cliente(datos_cliente: ClienteCrear):
-    nuevo_id = lista_clientes[-1]["id"] + 1 if lista_clientes else 1
-    cliente_dict = datos_cliente.model_dump()
-    cliente_dict["id"] = nuevo_id
-    lista_clientes.append(cliente_dict)
-    return {"mensaje": "Cliente creado exitosamente", "cliente": cliente_dict}
+# Endpoint para crear un cliente guardándolo directamente en SQLite
+@ratas_clientes.post("/clientes", response_model=Cliente)
+async def crear_cliente(datos_cliente: ClienteCrear, sesion: Session = Depends(obtener_sesion)):
+    nuevo_cliente = Cliente.model_validate(datos_cliente)
+    sesion.add(nuevo_cliente)
+    sesion.commit()
+    sesion.refresh(nuevo_cliente)
+    return nuevo_cliente
 
 @ratas_clientes.put("/clientes/{cliente_id}")
 async def editar_cliente(cliente_id: int, datos_actualizados: ClienteEditar):
-    for cliente in lista_clientes:
-        if cliente["id"] == cliente_id:
-            cliente["nombre"] = datos_actualizados.nombre
-            cliente["email"] = datos_actualizados.email
-            cliente["descripcion"] = datos_actualizados.descripcion
-            return {"mensaje": "Cliente modificado exitosamente", "cliente": cliente}
-    raise HTTPException(status_code=404, detail="Cliente no encontrado para editar")
+    # Nota: Este se mantendrá temporal hasta que el instructor muestre la edición en la BD
+    raise HTTPException(status_code=501, detail="Endpoint en mantenimiento para migración a BD")
 
 @ratas_clientes.delete("/clientes/{cliente_id}")
 async def eliminar_cliente(cliente_id: int):
-    for indice, cliente in enumerate(lista_clientes):
-        if cliente["id"] == cliente_id:
-            cliente_eliminado = lista_clientes.pop(indice)
-            return {"mensaje": "Cliente eliminado exitosamente", "cliente": cliente_eliminado}
-    raise HTTPException(status_code=404, detail="Cliente no encontrado para eliminar")
+    # Nota: Este se mantendrá temporal hasta que el instructor muestre la eliminación en la BD
+    raise HTTPException(status_code=501, detail="Endpoint en mantenimiento para migración a BD")
