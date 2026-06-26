@@ -1,5 +1,13 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from sqlmodel import SQLModel, Field
+
+# Nota: Mantener los modelos de simulación actuales activos mientras el instructor 
+# migra cada entidad a tablas de SQLModel en las siguientes clases.
+
+# =====================================================================
+# MODELOS DE PYDANTIC: CLIENTES
+# =====================================================================
 
 class ClienteBase(BaseModel):
     nombre: str
@@ -18,6 +26,11 @@ class ClienteResponse(ClienteBase):
     class Config:
         from_attributes = True
 
+
+# =====================================================================
+# MODELOS DE PYDANTIC: TRANSACCIONES
+# =====================================================================
+
 class TransaccionBase(BaseModel):
     id_factura: int
     monto: float
@@ -31,6 +44,11 @@ class TransaccionResponse(TransaccionBase):
 
     class Config:
         from_attributes = True
+
+
+# =====================================================================
+# MODELOS DE PYDANTIC: FACTURAS
+# =====================================================================
 
 class FacturaBase(BaseModel):
     monto_total: float
