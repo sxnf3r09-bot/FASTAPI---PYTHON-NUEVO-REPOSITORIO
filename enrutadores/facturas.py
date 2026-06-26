@@ -9,7 +9,10 @@ ratas_facturas = APIRouter()
 async def crear_factura(datos_factura: FacturaCrear, sesion: Session = Depends(obtener_sesion)):
     cliente = sesion.get(Cliente, datos_factura.cliente_id)
     if not cliente:
-        raise HTTPException(status_code=400, detail="El cliente no existe.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="El cliente no existe."
+        )
     
     nueva_factura = Factura.model_validate(datos_factura)
     sesion.add(nueva_factura)
