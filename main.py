@@ -1,29 +1,34 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+# Importamos los esquemas desde nuestro archivo de modelos
+from modelos import ClienteCrear
 
 app = FastAPI()
 
-# Lista de diccionarios que actúa como base de datos simulada de clientes
+# Lista de simulación (Base de datos temporal)
 lista_clientes = [
-    {"cliente_id": 1, "nombre": "Santiago Fernandez", "ciudad": "Bogota"},
-    {"cliente_id": 2, "nombre": "Jhonny Guerrero", "ciudad": "Medellin"},
-    {"cliente_id": 3, "nombre": "Carlos Mendoza", "ciudad": "Cali"}
+    {"id": 1, "nombre": "Santiago Fernandez", "email": "santiago@sena.edu.co", "descripcion": "Vocero de la ficha"},
+    {"id": 2, "nombre": "Jhonny Guerrero", "email": "jhonny@sena.edu.co", "descripcion": "Instructor principal"},
 ]
 
 @app.get("/")
 def inicio():
     return {"mensaje": "hola estoy aprendiendo FAS App"}
 
-# Endpoint para listar TODOS los clientes
+# Endpoint para listar todos los clientes
 @app.get("/clientes")
 def listar_clientes():
     return lista_clientes
 
-# Endpoint para listar UN SOLO cliente por su cliente_id
-@app.get("/clientes/{cliente_id}")
-def listar_cliente_id(cliente_id: int):
-    # Recorremos la lista de clientes para buscar la coincidencia
-    for cliente in lista_clientes:
-        if cliente["cliente_id"] == cliente_id:
-            return cliente
-    # Si no lo encuentra, retorna un mensaje de error
-    return {"error": "Cliente no encontrado"}
+# Endpoint para registrar un nuevo cliente usando el modelo de Pydantic
+@app.post("/clientes")
+def crear_cliente(datos_cliente: ClienteCrear):
+    # Generamos un ID simulado sumando 1 al último elemento
+    nuevo_id = lista_clientes[-1]["id"] + 1 if lista_clientes else 1
+    
+    # Convertimos el modelo de Pydantic a un diccionario de Python
+    cliente_dict = datos_cliente.model_dump()
+    cliente_dict["id"] = nuevo_id
+    
+    # Guardamos en nuestra lista
+    lista_clientes.append(cliente_dict)
+    return {"mensaje": "Cliente creado exitosamente", "cliente": cliente_dict}
