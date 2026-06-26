@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
-from sqlmodel import SQLModel, Field
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
 
 # =====================================================================
 # TABLA REAL: CLIENTES
@@ -10,6 +10,9 @@ class Cliente(SQLModel, table=True):
     nombre: str
     email: str
     descripcion: Optional[str] = None
+    
+    # Relación virtual: Un cliente puede tener muchas facturas
+    facturas: List["Factura"] = Relationship(back_populates="cliente")
 
 class ClienteCrear(BaseModel):
     nombre: str
@@ -30,6 +33,15 @@ class Factura(SQLModel, table=True):
     monto_total: float
     estado: str = Field(default="Pendiente")
     cliente_id: int = Field(foreign_key="cliente.id")
+    
+    # Relaciones virtuales de Factura
+    cliente: Optional[Cliente] = Relationship(back_populates="facturas")
+    transacciones: List["Transaccion"] = Relationship(back_populates="factura")
+
+    # Propiedad calculada (@property) explicada en el video para sumar montos si se requiere
+    @property
+    def total_pagado(self) -> float:
+        return sum(t.monto for t in self.transacciones if t.tipo.lower() == "pago")
 
 class FacturaCrear(BaseModel):
     monto_total: float
@@ -38,15 +50,16 @@ class FacturaCrear(BaseModel):
 
 
 # =====================================================================
-# TABLA REAL: TRANSACCIONES (NUEVA MIGRACIÓN)
+# TABLA REAL: TRANSACCIONES
 # =====================================================================
 class Transaccion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     monto: float
-    tipo: str  # Ejemplo: "Pago", "Reembolso"
-    
-    # Llave foránea vinculada directamente a la tabla factura
+    tipo: str
     id_factura: int = Field(foreign_key="factura.id")
+    
+    # Relación virtual: Una transacción pertenece a una factura
+    factura: Optional[Factura] = Relationship(back_populates="transacciones")
 
 class TransaccionCrear(BaseModel):
     monto: float
