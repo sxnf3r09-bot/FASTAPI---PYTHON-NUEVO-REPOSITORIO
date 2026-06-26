@@ -13,3 +13,30 @@ class ClienteCrear(ClienteBase):
 # Clase para la actualización/edición de registros existentes
 class ClienteEditar(ClienteBase):
     pass
+
+from pydantic import BaseModel
+
+# --- MODELOS DE CLIENTES (Clases anteriores) ---
+class ClienteBase(BaseModel):
+    nombre: str
+    email: str
+    descripcion: str
+
+class ClienteCrear(ClienteBase):
+    pass
+
+class ClienteEditar(ClienteBase):
+    pass
+
+
+# --- MODELOS DE TRANSACCIONES (Clase 7) ---
+class TransaccionBase(BaseModel):
+    id_factura: int
+    monto: float
+    descripcion: str
+
+class TransaccionCrear(TransaccionBase):
+    pass
+
+class TransaccionResponse(TransaccionBase):
+    id: int

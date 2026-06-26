@@ -58,3 +58,41 @@ def eliminar_cliente(cliente_id: int):
             return {"mensaje": "Cliente eliminado exitosamente", "cliente": cliente_eliminado}
             
     raise HTTPException(status_code=404, detail="Cliente no encontrado para eliminar")
+
+from fastapi import FastAPI, HTTPException
+from modelos import ClienteCrear, ClienteEditar
+# Importamos los nuevos modelos de transacciones
+from modelos import TransaccionCrear, TransaccionResponse
+
+app = FastAPI()
+
+# ... (Aquí se mantiene intacto todo tu código anterior de Clientes) ...
+
+# =====================================================================
+# RUTAS DE TRANSACCIONES - CLASE 7 (ENDPOINTS VACÍOS)
+# =====================================================================
+
+# 1. Listar todas las transacciones
+@app.get("/transacciones", response_model=list[TransaccionResponse])
+def listar_transacciones():
+    pass
+
+# 2. Listar una sola transacción por su ID
+@app.get("/transacciones/{transaccion_id}", response_model=TransaccionResponse)
+def listar_transaccion_id(transaccion_id: int):
+    pass
+
+# 3. Filtrar transacciones por el ID de una factura
+@app.get("/transacciones/factura/{id_factura}", response_model=list[TransaccionResponse])
+def listar_transacciones_factura(id_factura: int):
+    pass
+
+# 4. Crear una nueva transacción
+@app.post("/transacciones", response_model=TransaccionResponse)
+def crear_transaccion(transaccion: TransaccionCrear):
+    pass
+
+# 5. Eliminar una transacción
+@app.delete("/transacciones/{transaccion_id}", response_model=TransaccionResponse)
+def eliminar_transaccion(transaccion_id: int):
+    pass
