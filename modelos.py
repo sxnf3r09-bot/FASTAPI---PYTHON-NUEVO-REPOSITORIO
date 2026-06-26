@@ -2,35 +2,46 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlmodel import SQLModel, Field
 
-# Nota: Mantener los modelos de simulación actuales activos mientras el instructor 
-# migra cada entidad a tablas de SQLModel en las siguientes clases.
-
 # =====================================================================
-# MODELOS DE PYDANTIC: CLIENTES
+# TABLA REAL: CLIENTES
 # =====================================================================
+class Cliente(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nombre: str
+    email: str
+    descripcion: Optional[str] = None
 
-class ClienteBase(BaseModel):
+class ClienteCrear(BaseModel):
     nombre: str
     email: EmailStr
     descripcion: Optional[str] = None
 
-class ClienteCrear(ClienteBase):
-    pass
-
-class ClienteEditar(ClienteBase):
-    pass
-
-class ClienteResponse(ClienteBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+class ClienteEditar(BaseModel):
+    nombre: str
+    email: EmailStr
+    descripcion: Optional[str] = None
 
 
 # =====================================================================
-# MODELOS DE PYDANTIC: TRANSACCIONES
+# TABLA REAL: FACTURAS (NUEVA RELACIÓN)
 # =====================================================================
+class Factura(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    monto_total: float
+    estado: str = Field(default="Pendiente")
+    
+    # Llave foránea que conecta la factura con un cliente existente
+    cliente_id: int = Field(foreign_key="cliente.id")
 
+class FacturaCrear(BaseModel):
+    monto_total: float
+    cliente_id: int
+    estado: Optional[str] = "Pendiente"
+
+
+# =====================================================================
+# MODELOS TEMPORALES DE SIMULACIÓN (Transacciones se migrarán después)
+# =====================================================================
 class TransaccionBase(BaseModel):
     id_factura: int
     monto: float
@@ -41,25 +52,6 @@ class TransaccionCrear(TransaccionBase):
 
 class TransaccionResponse(TransaccionBase):
     id: int
-
-    class Config:
-        from_attributes = True
-
-
-# =====================================================================
-# MODELOS DE PYDANTIC: FACTURAS
-# =====================================================================
-
-class FacturaBase(BaseModel):
-    monto_total: float
-    estado: str = "Pendiente"
-
-class FacturaCrear(FacturaBase):
-    pass
-
-class FacturaResponse(FacturaBase):
-    id: int
-    id_cliente: int
 
     class Config:
         from_attributes = True
