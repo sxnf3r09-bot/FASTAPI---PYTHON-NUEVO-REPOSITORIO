@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.enrutadores.clientes import ratas_clientes
+from enrutadores.clientes import ratas_clientes
 
 app = FastAPI()
 

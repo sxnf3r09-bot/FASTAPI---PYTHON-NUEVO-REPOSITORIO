@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.modelos import ClienteCrear, ClienteEditar
+from modelos import ClienteCrear, ClienteEditar
 
 ratas_clientes = APIRouter()
 
