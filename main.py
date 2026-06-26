@@ -131,3 +131,59 @@ def obtener_factura_id(factura_id: int):
             
     # Si termina el ciclo y no la encuentra, dispara el error 404
     raise HTTPException(status_code=404, detail="Factura no encontrada")
+
+from fastapi import FastAPI, HTTPException, status
+from modelos import ClienteCrear, ClienteEditar
+from modelos import TransaccionCrear, TransaccionResponse
+from modelos import FacturaCrear, FacturaResponse
+
+app = FastAPI()
+
+# ... (Aquí se mantienen intactas tus listas simuladas y endpoints de Clientes y Transacciones) ...
+
+# Lista de simulación para base de datos de facturas
+lista_facturas = [
+    {"id": 1, "id_cliente": 1, "monto_total": 150000.0, "estado": "Pendiente"},
+    {"id": 2, "id_cliente": 1, "monto_total": 320000.0, "estado": "Pagada"},
+]
+
+# 1. Listar todas las facturas
+@app.get("/facturas", response_model=list[FacturaResponse])
+def listar_facturas():
+    return lista_facturas
+
+# 2. Listar una sola factura por su ID
+@app.get("/facturas/{factura_id}", response_model=FacturaResponse)
+def obtener_factura_id(factura_id: int):
+    for factura in lista_facturas:
+        if factura["id"] == factura_id:
+            return factura
+    raise HTTPException(status_code=404, detail="Factura no encontrada")
+
+# 3. Crear una nueva factura validando el cliente (Lógica principal del Video #9)
+@app.post("/facturas/{cliente_id}", response_model=FacturaResponse)
+def crear_factura(cliente_id: int, datos_factura: FacturaCrear):
+    cliente_encontrado = False
+    
+    # Validamos si el cliente existe en nuestra base de datos simulada
+    for cliente in lista_clientes:
+        if cliente["id"] == cliente_id:
+            cliente_encontrado = True
+            break
+            
+    # Si no se encuentra el cliente, lanzamos un error 400 Bad Request
+    if not cliente_encontrado:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El cliente con id {cliente_id} no existe."
+        )
+        
+    # Si el cliente existe, procedemos a generar la factura
+    nuevo_id = lista_facturas[-1]["id"] + 1 if lista_facturas else 1
+    
+    factura_dict = datos_factura.model_dump()
+    factura_dict["id"] = nuevo_id
+    factura_dict["id_cliente"] = cliente_id  # Asignamos el ID de la ruta
+    
+    lista_facturas.append(factura_dict)
+    return factura_dict
