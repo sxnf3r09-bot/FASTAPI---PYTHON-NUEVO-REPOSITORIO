@@ -23,14 +23,12 @@ class ClienteEditar(BaseModel):
 
 
 # =====================================================================
-# TABLA REAL: FACTURAS (NUEVA RELACIÓN)
+# TABLA REAL: FACTURAS
 # =====================================================================
 class Factura(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     monto_total: float
     estado: str = Field(default="Pendiente")
-    
-    # Llave foránea que conecta la factura con un cliente existente
     cliente_id: int = Field(foreign_key="cliente.id")
 
 class FacturaCrear(BaseModel):
@@ -40,18 +38,17 @@ class FacturaCrear(BaseModel):
 
 
 # =====================================================================
-# MODELOS TEMPORALES DE SIMULACIÓN (Transacciones se migrarán después)
+# TABLA REAL: TRANSACCIONES (NUEVA MIGRACIÓN)
 # =====================================================================
-class TransaccionBase(BaseModel):
-    id_factura: int
+class Transaccion(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    monto: float
+    tipo: str  # Ejemplo: "Pago", "Reembolso"
+    
+    # Llave foránea vinculada directamente a la tabla factura
+    id_factura: int = Field(foreign_key="factura.id")
+
+class TransaccionCrear(BaseModel):
     monto: float
     tipo: str
-
-class TransaccionCrear(TransaccionBase):
-    pass
-
-class TransaccionResponse(TransaccionBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+    id_factura: int
