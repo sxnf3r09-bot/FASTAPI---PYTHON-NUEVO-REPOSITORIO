@@ -40,3 +40,19 @@ class TransaccionCrear(TransaccionBase):
 
 class TransaccionResponse(TransaccionBase):
     id: int
+
+    from pydantic import BaseModel
+
+# ... (Mantén tus clases anteriores de Clientes y Transacciones intactas) ...
+
+# --- MODELOS DE FACTURAS (Clase 8) ---
+class FacturaBase(BaseModel):
+    id_cliente: int
+    monto_total: float
+    estado: str  # Ejemplo: "Pagada", "Pendiente"
+
+class FacturaCrear(FacturaBase):
+    pass
+
+class FacturaResponse(FacturaBase):
+    id: int

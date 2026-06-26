@@ -96,3 +96,38 @@ def crear_transaccion(transaccion: TransaccionCrear):
 @app.delete("/transacciones/{transaccion_id}", response_model=TransaccionResponse)
 def eliminar_transaccion(transaccion_id: int):
     pass
+
+from fastapi import FastAPI, HTTPException
+from modelos import ClienteCrear, ClienteEditar
+from modelos import TransaccionCrear, TransaccionResponse
+# Importamos los nuevos modelos de facturas
+from modelos import FacturaCrear, FacturaResponse
+
+app = FastAPI()
+
+# ... (Aquí se mantiene todo tu código anterior de Clientes y Transacciones) ...
+
+# =====================================================================
+# ENTIDAD FACTURAS - CLASE 8 (CON LÓGICA Y VALIDACIÓN)
+# =====================================================================
+
+# Lista de simulación para base de datos de facturas
+lista_facturas = [
+    {"id": 1, "id_cliente": 1, "monto_total": 150000.0, "estado": "Pendiente"},
+    {"id": 2, "id_cliente": 1, "monto_total": 320000.0, "estado": "Pagada"},
+]
+
+# 1. Listar todas las facturas
+@app.get("/facturas", response_model=list[FacturaResponse])
+def listar_facturas():
+    return lista_facturas
+
+# 2. Listar una sola factura por su ID (Lógica principal del Video #8)
+@app.get("/facturas/{factura_id}", response_model=FacturaResponse)
+def obtener_factura_id(factura_id: int):
+    for factura in lista_facturas:
+        if factura["id"] == factura_id:
+            return factura
+            
+    # Si termina el ciclo y no la encuentra, dispara el error 404
+    raise HTTPException(status_code=404, detail="Factura no encontrada")
