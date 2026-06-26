@@ -1,26 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
-# Clase base con los campos comunes
 class ClienteBase(BaseModel):
     nombre: str
-    email: str
-    descripcion: str
-
-# Clase para la creación de nuevos registros
-class ClienteCrear(ClienteBase):
-    pass
-
-# Clase para la actualización/edición de registros existentes
-class ClienteEditar(ClienteBase):
-    pass
-
-from pydantic import BaseModel
-
-# --- MODELOS DE CLIENTES (Clases anteriores) ---
-class ClienteBase(BaseModel):
-    nombre: str
-    email: str
-    descripcion: str
+    email: EmailStr
+    descripcion: Optional[str] = None
 
 class ClienteCrear(ClienteBase):
     pass
@@ -28,12 +12,16 @@ class ClienteCrear(ClienteBase):
 class ClienteEditar(ClienteBase):
     pass
 
+class ClienteResponse(ClienteBase):
+    id: int
 
-# --- MODELOS DE TRANSACCIONES (Clase 7) ---
+    class Config:
+        from_attributes = True
+
 class TransaccionBase(BaseModel):
     id_factura: int
     monto: float
-    descripcion: str
+    tipo: str
 
 class TransaccionCrear(TransaccionBase):
     pass
@@ -41,18 +29,19 @@ class TransaccionCrear(TransaccionBase):
 class TransaccionResponse(TransaccionBase):
     id: int
 
-    from pydantic import BaseModel
+    class Config:
+        from_attributes = True
 
-# ... (Mantén tus clases anteriores de Clientes y Transacciones intactas) ...
-
-# --- MODELOS DE FACTURAS (Clase 8) ---
 class FacturaBase(BaseModel):
-    id_cliente: int
     monto_total: float
-    estado: str  # Ejemplo: "Pagada", "Pendiente"
+    estado: str = "Pendiente"
 
 class FacturaCrear(FacturaBase):
     pass
 
 class FacturaResponse(FacturaBase):
     id: int
+    id_cliente: int
+
+    class Config:
+        from_attributes = True
