@@ -3,17 +3,46 @@ from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 
 # =====================================================================
-# TABLA REAL: CLIENTES
+# MODELOS BASE (Para evitar herencias cruzadas)
 # =====================================================================
-class Cliente(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class ClienteBase(SQLModel):
     nombre: str
     email: str
     descripcion: Optional[str] = None
-    
-    # Relación virtual: Un cliente puede tener muchas facturas
+
+class FacturaBase(SQLModel):
+    monto_total: float
+    estado: str = "Pendiente"
+    cliente_id: int
+
+class TransaccionBase(SQLModel):
+    monto: float
+    tipo: str
+    id_factura: int
+
+# =====================================================================
+# TABLAS REALES EN BASE DE DATOS
+# =====================================================================
+class Cliente(ClienteBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     facturas: List["Factura"] = Relationship(back_populates="cliente")
 
+class Factura(FacturaBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    cliente_id: int = Field(foreign_key="cliente.id")
+    
+    cliente: Optional[Cliente] = Relationship(back_populates="facturas")
+    transacciones: List["Transaccion"] = Relationship(back_populates="factura")
+
+class Transaccion(TransaccionBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    id_factura: int = Field(foreign_key="factura.id")
+    
+    factura: Optional[Factura] = Relationship(back_populates="transacciones")
+
+# =====================================================================
+# ESQUEMAS DE PETICIÓN (DTOs / VALIDACIÓN)
+# =====================================================================
 class ClienteCrear(BaseModel):
     nombre: str
     email: EmailStr
@@ -24,44 +53,26 @@ class ClienteEditar(BaseModel):
     email: EmailStr
     descripcion: Optional[str] = None
 
-
-# =====================================================================
-# TABLA REAL: FACTURAS
-# =====================================================================
-class Factura(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    monto_total: float
-    estado: str = Field(default="Pendiente")
-    cliente_id: int = Field(foreign_key="cliente.id")
-    
-    # Relaciones virtuales de Factura
-    cliente: Optional[Cliente] = Relationship(back_populates="facturas")
-    transacciones: List["Transaccion"] = Relationship(back_populates="factura")
-
-    # Propiedad calculada (@property) explicada en el video para sumar montos si se requiere
-    @property
-    def total_pagado(self) -> float:
-        return sum(t.monto for t in self.transacciones if t.tipo.lower() == "pago")
-
 class FacturaCrear(BaseModel):
     monto_total: float
     cliente_id: int
     estado: Optional[str] = "Pendiente"
 
-
-# =====================================================================
-# TABLA REAL: TRANSACCIONES
-# =====================================================================
-class Transaccion(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    monto: float
-    tipo: str
-    id_factura: int = Field(foreign_key="factura.id")
-    
-    # Relación virtual: Una transacción pertenece a una factura
-    factura: Optional[Factura] = Relationship(back_populates="transacciones")
-
 class TransaccionCrear(BaseModel):
     monto: float
     tipo: str
     id_factura: int
+
+# =====================================================================
+# ESQUEMAS DE RESPUESTA ANIDADOS (La magia del Video 21)
+# =====================================================================
+class TransaccionResponse(TransaccionBase):
+    id: int
+
+class FacturaConTransacciones(FacturaBase):
+    id: int
+    transacciones: List[TransaccionResponse] = []
+
+class ClienteConFacturas(ClienteBase):
+    id: int
+    facturas: List[FacturaConTransacciones] = []
